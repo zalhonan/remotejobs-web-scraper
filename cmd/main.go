@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/gocolly/colly"
+	"golang.org/x/net/html"
 )
 
 func main() {
@@ -26,13 +28,39 @@ func main() {
 
 	c.OnHTML("div.tgme_widget_message_text.js-message_text", func(e *colly.HTMLElement) {
 
-		fmt.Printf("Message text: %s\n", e.Text)
+		htmlContent, _ := e.DOM.Html()
+
+		processedText := strings.ReplaceAll(htmlContent, "<br>", "\n")
+		processedText = strings.ReplaceAll(processedText, "<br/>", "\n")
+		processedText = stripHTMLTags(processedText)
+
+		fmt.Printf("Message text:\n%s\n", processedText)
 	})
 
 	c.OnScraped(func(r *colly.Response) {
 		fmt.Println("Finished scraping", r.Request.URL)
 	})
 
-	// c.Visit("https://www.scrapingcourse.com/ecommerce")
 	c.Visit("https://t.me/s/rabota_razrabotchikj")
+}
+
+func stripHTMLTags(s string) string {
+	doc, err := html.Parse(strings.NewReader(s))
+	if err != nil {
+		return s
+	}
+
+	var textBuilder strings.Builder
+	var extractText func(*html.Node)
+	extractText = func(n *html.Node) {
+		if n.Type == html.TextNode {
+			textBuilder.WriteString(n.Data)
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			extractText(c)
+		}
+	}
+	extractText(doc)
+
+	return textBuilder.String()
 }
