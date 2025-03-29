@@ -9,6 +9,8 @@ import (
 )
 
 func main() {
+	counter := 0
+
 	c := colly.NewCollector(
 		colly.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"),
 	)
@@ -26,15 +28,45 @@ func main() {
 		fmt.Println("Page visited:", r.Request.URL)
 	})
 
-	c.OnHTML("div.tgme_widget_message_text.js-message_text", func(e *colly.HTMLElement) {
+	// Обрабатываем каждый пост целиком
+	c.OnHTML("div.tgme_widget_message", func(e *colly.HTMLElement) {
+		// Получаем текст основного сообщения
+		// messageText := e.ChildText("div.tgme_widget_message_text.js-message_text")
 
-		htmlContent, _ := e.DOM.Html()
+		// Если метод ChildText не обеспечивает правильное форматирование с переводами строк,
+		// то используем следующий подход с HTML
+		messageTextDiv := e.DOM.Find("div.tgme_widget_message_text.js-message_text")
+		htmlContent, _ := messageTextDiv.Html()
 
 		processedText := strings.ReplaceAll(htmlContent, "<br>", "\n")
 		processedText = strings.ReplaceAll(processedText, "<br/>", "\n")
 		processedText = stripHTMLTags(processedText)
 
-		fmt.Printf("Message text:\n%s\n", processedText)
+		// Получаем информацию из блока под сообщением
+		infoBlock := e.DOM.Find("div.tgme_widget_message_info.short.js-message_info")
+
+		// Извлекаем полную дату/время публикации из атрибута datetime тега time
+		dateTime := ""
+		timeElement := infoBlock.Find("a.tgme_widget_message_date time")
+		if timeElement.Length() > 0 {
+			dateTime, _ = timeElement.Attr("datetime")
+		} else {
+			// Если элемент time не найден, используем текст из meta как запасной вариант
+			dateTime = infoBlock.Find("span.tgme_widget_message_meta").Text()
+		}
+
+		// Извлекаем ссылку на сообщение (если нужна)
+		messageLink, _ := infoBlock.Find("a.tgme_widget_message_date").Attr("href")
+
+		fmt.Printf("\n==== СООБЩЕНИЕ ====\n")
+		fmt.Printf("Текст сообщения:\n%s\n", processedText)
+		fmt.Printf("-------------------\n")
+		fmt.Printf("Дата и время публикации: %s\n", dateTime)
+		fmt.Printf("Ссылка на сообщение: %s\n", messageLink)
+		fmt.Printf("==== КОНЕЦ СООБЩЕНИЯ ====\n\n")
+
+		counter++
+		fmt.Printf("-----------Обработано сообщений: %d\n", counter)
 	})
 
 	c.OnScraped(func(r *colly.Response) {
