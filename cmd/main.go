@@ -70,8 +70,8 @@ func main() {
 		fmt.Println("Finished scraping", r.Request.URL)
 	})
 
-	// c.Visit("https://t.me/s/rabota_razrabotchikj")
-	c.Visit("https://t.me/s/javadevjob")
+	c.Visit("https://t.me/s/rabota_razrabotchikj")
+	// c.Visit("https://t.me/s/javadevjob")
 }
 
 func stripHTMLTags(s string) string {

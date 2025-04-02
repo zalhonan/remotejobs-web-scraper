@@ -29,8 +29,8 @@ func (r *repository) GetChannels(ctx context.Context) ([]model.TelegramChannel, 
 	for _, tag := range channelsTags {
 		channelTag := strings.ReplaceAll(tag, "https://t.me/", "")
 		channels = append(channels, model.TelegramChannel{
-			Name:      channelTag,
-			DateAdded: time.Now(),
+			Name:           channelTag,
+			DateLastParsed: time.Now(),
 		})
 	}
 
