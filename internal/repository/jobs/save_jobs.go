@@ -9,7 +9,7 @@ import (
 
 func (r *repository) SaveJobs(ctx context.Context, jobs []model.JobRaw) (int, error) {
 	for _, job := range jobs {
-		fmt.Printf("Saving job %s joblink %s\n", job.Content, job.SourceLink)
+		fmt.Printf("Saving job by joblink %s\n", job.SourceLink)
 	}
 
 	return len(jobs), nil

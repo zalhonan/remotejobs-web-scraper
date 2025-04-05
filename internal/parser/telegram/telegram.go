@@ -1,13 +1,13 @@
 package telegram
 
-import "github.com/zalhonan/remotejobs-web-scraper/internal/repository"
+import "context"
 
 type telegramParser struct {
-	repository repository.JobsRepository
+	ctx context.Context
 }
 
-func NewTelegramParser(repository repository.JobsRepository) *telegramParser {
+func NewTelegramParser(context context.Context) *telegramParser {
 	return &telegramParser{
-		repository: repository,
+		ctx: context,
 	}
 }
