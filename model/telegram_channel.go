@@ -8,4 +8,5 @@ type TelegramChannel struct {
 	DateChannelAdded time.Time
 	PostsParsed      int64
 	DateLastParsed   time.Time
+	LastPostID       int64
 }
