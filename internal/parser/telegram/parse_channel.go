@@ -50,13 +50,7 @@ func (p *telegramParser) parseChannel(tag string) (jobs []model.JobRaw, err erro
 		// Извлекаем ссылку на сообщение
 		messageLink, _ := infoBlock.Find("a.tgme_widget_message_date").Attr("href")
 
-		fmt.Printf("\n==== СООБЩЕНИЕ ====\n")
-		// fmt.Printf("Текст сообщения:\n%s\n", processedText) // process text
-		fmt.Printf("Текст сообщения:\n%s\n", htmlContent)
-		fmt.Printf("-------------------\n")
-		fmt.Printf("Дата и время публикации: %s\n", dateTime)
 		fmt.Printf("Ссылка на сообщение: %s\n", messageLink)
-		fmt.Printf("==== КОНЕЦ СООБЩЕНИЯ ====\n\n")
 
 		counter++
 		fmt.Printf("-----------Обработано сообщений: %d\n", counter)
