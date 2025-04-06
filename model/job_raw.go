@@ -3,9 +3,10 @@ package model
 import "time"
 
 type JobRaw struct {
-	ID         string
-	Content    string
-	SourceLink string
-	DatePosted time.Time
-	DateParsed time.Time
+	ID             int64
+	Content        string
+	SourceLink     string
+	MainTechnology string
+	DatePosted     time.Time
+	DateParsed     time.Time
 }
