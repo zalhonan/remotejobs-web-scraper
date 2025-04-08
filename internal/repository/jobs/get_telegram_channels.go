@@ -11,16 +11,16 @@ func (r *repository) GetTelegramChannels(ctx context.Context) ([]model.TelegramC
 
 	channelsTags := []string{
 		"java_c_net_golang_jobs",
-		"java_rabota",
-		"rabota_razrabotchikh",
-		"rabota_razrabotchikq",
-		"job_javadevs",
-		"rabota_razrabotchika",
-		"rabotac_razrabotchik",
-		"rabota_razrabotchikj",
-		"jvmjobs",
-		"Java_workit",
-		"javadevjob",
+		// "java_rabota",
+		// "rabota_razrabotchikh",
+		// "rabota_razrabotchikq",
+		// "job_javadevs",
+		// "rabota_razrabotchika",
+		// "rabotac_razrabotchik",
+		// "rabota_razrabotchikj",
+		// "jvmjobs",
+		// "Java_workit",
+		// "javadevjob",
 	}
 
 	channels := make([]model.TelegramChannel, 0, len(channelsTags))

@@ -7,7 +7,6 @@ import (
 )
 
 func (p *telegramParser) ParseJobs() (jobs []model.JobRaw, err error) {
-
 	channels, error := p.repository.GetTelegramChannels(p.ctx)
 
 	if error != nil {
