@@ -6,9 +6,12 @@ import (
 
 	"github.com/gocolly/colly"
 	"github.com/zalhonan/remotejobs-web-scraper/model"
+	"go.uber.org/zap"
 )
 
 func (p *telegramParser) parseChannel(tag string) (jobs []model.JobRaw, err error) {
+	op := "internal.parser.telegram.parseChannel"
+
 	counter := 0
 
 	c := colly.NewCollector(
@@ -16,16 +19,25 @@ func (p *telegramParser) parseChannel(tag string) (jobs []model.JobRaw, err erro
 	)
 
 	c.OnRequest(func(r *colly.Request) {
-		fmt.Println("Visiting", r.URL)
+		p.logger.Info(
+			"Visiting URL",
+			zap.String("URL", r.URL.String()),
+		)
 	})
 
 	c.OnError(func(r *colly.Response, err error) {
-		fmt.Println("Request failed with status code:", r.StatusCode)
-		fmt.Println("Error:", err)
+		p.logger.Warn(
+			"Request failed",
+			zap.Int("Status code:", r.StatusCode),
+			zap.Error(err),
+		)
 	})
 
 	c.OnResponse(func(r *colly.Response) {
-		fmt.Println("Page visited:", r.Request.URL)
+		p.logger.Info(
+			"Page visited",
+			zap.String("URL", r.Request.URL.String()),
+		)
 	})
 
 	// Обрабатываем каждый пост целиком
@@ -50,17 +62,19 @@ func (p *telegramParser) parseChannel(tag string) (jobs []model.JobRaw, err erro
 		// Извлекаем ссылку на сообщение
 		messageLink, _ := infoBlock.Find("a.tgme_widget_message_date").Attr("href")
 
-		fmt.Printf("Ссылка на сообщение: %s\n", messageLink)
-
 		counter++
-		fmt.Printf("-----------Обработано сообщений: %d\n", counter)
+		p.logger.Info(
+			"Message parsed",
+			zap.String("Message link", messageLink),
+			zap.String("Date time", dateTime),
+			zap.Int("Messages processed", counter),
+		)
 
 		// Parse the dateTime string into a time.Time value
 		parsedTime, err := time.Parse(time.RFC3339, dateTime)
 		if err != nil {
 			// If parsing fails, use current time as fallback
 			parsedTime = time.Now()
-			fmt.Printf("Error parsing date: %v\n", err)
 		}
 
 		jobs = append(jobs, model.JobRaw{
@@ -72,7 +86,10 @@ func (p *telegramParser) parseChannel(tag string) (jobs []model.JobRaw, err erro
 	})
 
 	c.OnScraped(func(r *colly.Response) {
-		fmt.Println("Finished scraping", r.Request.URL)
+		p.logger.Info(
+			"Page visited",
+			zap.String("URL", r.Request.URL.String()),
+		)
 	})
 
 	channel := fmt.Sprintf("https://t.me/s/%s", tag)
@@ -80,8 +97,7 @@ func (p *telegramParser) parseChannel(tag string) (jobs []model.JobRaw, err erro
 	error := c.Visit(channel)
 
 	if error != nil {
-		fmt.Printf("Error visiting channel: %v\n", error)
-		return nil, error
+		return nil, fmt.Errorf("%s: %w", op, error)
 	}
 
 	return jobs, nil

@@ -27,7 +27,7 @@ func main() {
 
 	repository := jobs.NewRepository(db)
 
-	telegramParser := telegram.NewTelegramParser(repository, ctx)
+	telegramParser := telegram.NewTelegramParser(repository, logger, ctx)
 
 	parsers := []parser.Parser{telegramParser}
 
