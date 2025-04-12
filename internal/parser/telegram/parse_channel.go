@@ -65,9 +65,8 @@ func (p *telegramParser) parseChannel(tag string) (jobs []model.JobRaw, err erro
 		counter++
 		p.logger.Info(
 			"Message parsed",
-			zap.String("Message link", messageLink),
-			zap.String("Date time", dateTime),
-			zap.Int("Messages processed", counter),
+			zap.String("URL", messageLink),
+			zap.Int("Processed", counter),
 		)
 
 		// Parse the dateTime string into a time.Time value
