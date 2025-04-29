@@ -1,0 +1,5 @@
+
+We are creating a web scraper that will scan and collect information about vacancies on different websites.
+We start with the web version of Telegram channels https://t.me/s/<channel-name> and collect vacancies in the database.
+When writing code, be sure that it will work correctly and that you are not breaking anything that exists.
+Use context7 when generating code to use the latest versions of libraries, frameworks and tools.
