@@ -26,6 +26,6 @@ CREATE INDEX idx_telegram_channels_tag ON telegram_channels(tag);
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS jobs_raw;
 DROP TABLE IF EXISTS telegram_channels;
+DROP TABLE IF EXISTS jobs_raw;
 -- +goose StatementEnd
