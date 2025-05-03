@@ -11,6 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// Приоритет имеют переменные окружения
 func InitDB(ctx context.Context, logger *zap.Logger) (*pgxpool.Pool, error) {
 	// Загружаем .env файл, но не останавливаем выполнение, если его нет
 	if err := godotenv.Load("../.env"); err != nil {
@@ -48,6 +49,10 @@ func InitDB(ctx context.Context, logger *zap.Logger) (*pgxpool.Pool, error) {
 	}
 
 	dbDSN := strings.Join(dbParams, " ")
+
+	if dbDSN == "" {
+		return nil, fmt.Errorf("не удалось создать строку подключения к БД: не найдены необходимые переменные окружения")
+	}
 
 	// Подключаемся к БД
 	poolConfig, err := pgxpool.ParseConfig(dbDSN)
