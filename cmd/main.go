@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/zalhonan/remotejobs-web-scraper/internal/logger"
 	"github.com/zalhonan/remotejobs-web-scraper/internal/parser"
 	"github.com/zalhonan/remotejobs-web-scraper/internal/parser/telegram"
@@ -28,7 +29,26 @@ func main() {
 	)
 
 	ctx := context.Background()
-	db := "db" // TODO: connect real DB here
+
+	dbDSN := "host=localhost port=54321 dbname=remotejobs user=remotejobs password=vvXTT999yyTTTTa sslmode=disable"
+
+	// Подключаемся к БД
+	poolConfig, err := pgxpool.ParseConfig(dbDSN)
+	if err != nil {
+		logger.Fatal("Unable to parse database connection string",
+			zap.Error(err),
+		)
+	}
+
+	db, err := pgxpool.ConnectConfig(ctx, poolConfig)
+	if err != nil {
+		logger.Fatal("Unable to connect to database",
+			zap.Error(err),
+		)
+	}
+	defer db.Close()
+
+	logger.Info("Successfully connected to database")
 
 	repository := jobs.NewRepository(db)
 

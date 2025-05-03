@@ -1,10 +1,14 @@
 package jobs
 
+import (
+	"github.com/jackc/pgx/v4/pgxpool"
+)
+
 type repository struct {
-	db string // TODO: connect real DB here
+	db *pgxpool.Pool
 }
 
-func NewRepository(db string) *repository {
+func NewRepository(db *pgxpool.Pool) *repository {
 	return &repository{
 		db: db,
 	}
