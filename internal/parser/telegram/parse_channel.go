@@ -63,11 +63,6 @@ func (p *telegramParser) parseChannel(tag string) (jobs []model.JobRaw, err erro
 		messageLink, _ := infoBlock.Find("a.tgme_widget_message_date").Attr("href")
 
 		counter++
-		p.logger.Info(
-			"Message parsed",
-			zap.String("URL", messageLink),
-			zap.Int("Processed", counter),
-		)
 
 		// Parse the dateTime string into a time.Time value
 		parsedTime, err := time.Parse(time.RFC3339, dateTime)
