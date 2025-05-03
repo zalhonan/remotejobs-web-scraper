@@ -2,7 +2,6 @@ package jobs
 
 import (
 	"bufio"
-	"context"
 	"os"
 	"strings"
 
@@ -57,7 +56,7 @@ func (r *repository) SaveChannels(filePath string) (int, error) {
 	}
 
 	// Выполняем запрос и получаем количество вставленных записей
-	rows, err := r.db.Query(context.Background(), query, args...)
+	rows, err := r.db.Query(r.context, query, args...)
 	if err != nil {
 		return 0, err
 	}
