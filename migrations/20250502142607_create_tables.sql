@@ -13,7 +13,7 @@ CREATE INDEX idx_jobs_raw_main_technology ON jobs_raw(main_technology);
 
 CREATE TABLE IF NOT EXISTS telegram_channels (
     id BIGSERIAL PRIMARY KEY,
-    tag VARCHAR(255) NOT NULL,
+    tag VARCHAR(255) NOT NULL UNIQUE,
     last_post_id BIGINT NOT NULL DEFAULT 0,
     date_channel_added TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     posts_parsed BIGINT NOT NULL DEFAULT 0,
