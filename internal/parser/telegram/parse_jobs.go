@@ -13,17 +13,18 @@ func (p *telegramParser) ParseJobs() (jobs []model.JobRaw, err error) {
 	channels, error := p.repository.GetTelegramChannels()
 
 	if error != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("%s: %w", op, error)
 	}
 
 	for _, channel := range channels {
+
 		parsedJobs, error := p.parseChannel(channel.Tag)
 
 		if error != nil {
 			p.logger.Warn(
 				"Error parsing jobs from channel",
 				zap.String("Channel", channel.Tag),
-				zap.Error(err),
+				zap.Error(error),
 			)
 		}
 

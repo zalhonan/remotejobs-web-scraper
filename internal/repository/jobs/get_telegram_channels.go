@@ -1,34 +1,62 @@
 package jobs
 
 import (
-	"time"
+	"fmt"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/zalhonan/remotejobs-web-scraper/model"
 )
 
 func (r *repository) GetTelegramChannels() ([]model.TelegramChannel, error) {
+	op := "repository.jobs.GetTelegramChannels"
 
-	channelsTags := []string{
-		"java_c_net_golang_jobs",
-		// "java_rabota",
-		// "rabota_razrabotchikh",
-		// "rabota_razrabotchikq",
-		// "job_javadevs",
-		// "rabota_razrabotchika",
-		// "rabotac_razrabotchik",
-		// "rabota_razrabotchikj",
-		// "jvmjobs",
-		// "Java_workit",
-		// "javadevjob",
+	// Создаем билдер запросов SQL с указанием формата плейсхолдеров для PostgreSQL
+	psql := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
+
+	// Формируем SELECT запрос
+	sql, args, err := psql.
+		Select("id", "tag", "last_post_id", "date_channel_added", "posts_parsed", "date_last_parsed").
+		From("telegram_channels").
+		ToSql()
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: формирование SQL-запроса: %w", op, err)
 	}
 
-	channels := make([]model.TelegramChannel, 0, len(channelsTags))
+	// Выполняем запрос
+	rows, err := r.db.Query(r.context, sql, args...)
+	if err != nil {
+		return nil, fmt.Errorf("%s: выполнение запроса: %w", op, err)
+	}
+	defer rows.Close()
 
-	for _, tag := range channelsTags {
-		channels = append(channels, model.TelegramChannel{
-			Tag:            tag,
-			DateLastParsed: time.Now(),
-		})
+	channels := make([]model.TelegramChannel, 0)
+
+	for rows.Next() {
+		var channel model.TelegramChannel
+
+		err := rows.Scan(
+			&channel.ID,
+			&channel.Tag,
+			&channel.LastPostID,
+			&channel.DateChannelAdded,
+			&channel.PostsParsed,
+			&channel.DateLastParsed,
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("%s: сканирование строки: %w", op, err)
+		}
+
+		channels = append(channels, channel)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%s: итерация по результатам: %w", op, err)
+	}
+
+	if len(channels) == 0 {
+		r.logger.Info("Не найдено ни одного Telegram-канала в базе данных")
 	}
 
 	return channels, nil
