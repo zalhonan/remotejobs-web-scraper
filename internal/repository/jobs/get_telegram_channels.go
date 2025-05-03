@@ -1,13 +1,12 @@
 package jobs
 
 import (
-	"context"
 	"time"
 
 	"github.com/zalhonan/remotejobs-web-scraper/model"
 )
 
-func (r *repository) GetTelegramChannels(ctx context.Context) ([]model.TelegramChannel, error) {
+func (r *repository) GetTelegramChannels() ([]model.TelegramChannel, error) {
 
 	channelsTags := []string{
 		"java_c_net_golang_jobs",

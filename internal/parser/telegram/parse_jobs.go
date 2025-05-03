@@ -10,7 +10,7 @@ import (
 func (p *telegramParser) ParseJobs() (jobs []model.JobRaw, err error) {
 	op := "internal.parser.telegram.ParseJobs"
 
-	channels, error := p.repository.GetTelegramChannels(p.ctx)
+	channels, error := p.repository.GetTelegramChannels()
 
 	if error != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)

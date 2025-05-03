@@ -10,7 +10,7 @@ func (s *service) CollectJobs() error {
 
 		if err != nil {
 			s.logger.Warn(
-				"Parser retuned error while parsing jobs",
+				"Parser returned error while parsing jobs",
 				zap.String("Parser", parser.Name()),
 				zap.Error(err),
 			)
@@ -25,7 +25,7 @@ func (s *service) CollectJobs() error {
 			continue
 		}
 
-		saved, err := s.repository.SaveJobs(s.context, jobs)
+		saved, err := s.repository.SaveJobs(jobs)
 		if err != nil {
 			s.logger.Warn(
 				"Error saving jobs from parser",

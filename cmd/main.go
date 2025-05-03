@@ -37,7 +37,7 @@ func main() {
 	}
 	defer database.Close()
 
-	repository := jobs.NewRepository(database)
+	repository := jobs.NewRepository(database, logger, ctx)
 
 	telegramParser := telegram.NewTelegramParser(repository, logger, ctx)
 
