@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/zalhonan/remotejobs-web-scraper/internal/db"
 	"github.com/zalhonan/remotejobs-web-scraper/internal/logger"
 	"github.com/zalhonan/remotejobs-web-scraper/internal/parser"
 	"github.com/zalhonan/remotejobs-web-scraper/internal/parser/telegram"
@@ -30,27 +30,14 @@ func main() {
 
 	ctx := context.Background()
 
-	dbDSN := "host=localhost port=54321 dbname=remotejobs user=remotejobs password=vvXTT999yyTTTTa sslmode=disable"
-
-	// Подключаемся к БД
-	poolConfig, err := pgxpool.ParseConfig(dbDSN)
+	// Инициализация соединения с базой данных
+	database, err := db.InitDB(ctx, logger)
 	if err != nil {
-		logger.Fatal("Unable to parse database connection string",
-			zap.Error(err),
-		)
+		logger.Fatal("Не удалось инициализировать базу данных", zap.Error(err))
 	}
+	defer database.Close()
 
-	db, err := pgxpool.ConnectConfig(ctx, poolConfig)
-	if err != nil {
-		logger.Fatal("Unable to connect to database",
-			zap.Error(err),
-		)
-	}
-	defer db.Close()
-
-	logger.Info("Successfully connected to database")
-
-	repository := jobs.NewRepository(db)
+	repository := jobs.NewRepository(database)
 
 	telegramParser := telegram.NewTelegramParser(repository, logger, ctx)
 
@@ -59,10 +46,10 @@ func main() {
 	service := service.NewService(repository, parsers, logger, ctx)
 
 	if err := service.CollectJobs(); err != nil {
-		logger.Error("Error collecting jobs",
+		logger.Error("Ошибка сбора вакансий",
 			zap.Error(err),
 		)
 	}
 
-	logger.Info("Jobs collected successfully")
+	logger.Info("Вакансии успешно собраны")
 }
