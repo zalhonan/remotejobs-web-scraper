@@ -14,11 +14,10 @@ CREATE INDEX idx_jobs_raw_main_technology ON jobs_raw(main_technology);
 CREATE TABLE IF NOT EXISTS telegram_channels (
     id BIGSERIAL PRIMARY KEY,
     tag VARCHAR(255) NOT NULL UNIQUE,
-    last_post_id BIGINT NOT NULL DEFAULT 0,
+    last_post_id BIGINT DEFAULT 0,
     date_channel_added TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     posts_parsed BIGINT NOT NULL DEFAULT 0,
-    date_last_parsed TIMESTAMP WITH TIME ZONE,
-    CONSTRAINT fk_last_post FOREIGN KEY (last_post_id) REFERENCES jobs_raw(id)
+    date_last_parsed TIMESTAMP WITH TIME ZONE
 );
 
 CREATE INDEX idx_telegram_channels_tag ON telegram_channels(tag);

@@ -7,5 +7,5 @@ import (
 type JobsRepository interface {
 	GetTelegramChannels() ([]model.TelegramChannel, error)
 	SaveJobs(jobs []model.JobRaw) (int, error)
-	SaveChannels() (int, error)
+	SaveChannels(jobsList string) (int, error)
 }

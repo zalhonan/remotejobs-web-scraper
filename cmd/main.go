@@ -39,6 +39,16 @@ func main() {
 
 	repository := jobs.NewRepository(database, logger, ctx)
 
+	channelsList := "../data/telegram_channels.txt"
+
+	channels, err := repository.SaveChannels(channelsList)
+
+	if err != nil {
+		logger.Error("Ошибка сохранения каналов", zap.Error(err))
+	}
+
+	logger.Info("Каналы успешно сохранены", zap.Int("count", channels))
+
 	telegramParser := telegram.NewTelegramParser(repository, logger, ctx)
 
 	parsers := []parser.Parser{telegramParser}
