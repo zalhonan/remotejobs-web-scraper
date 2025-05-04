@@ -2,6 +2,7 @@ package jobs
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -10,6 +11,8 @@ import (
 	"github.com/zalhonan/remotejobs-web-scraper/model"
 	"go.uber.org/zap"
 )
+
+var channelTagRegexp = regexp.MustCompile(`^[a-zA-Z0-9_]+$`)
 
 func (r *repository) SaveJobs(jobs []model.JobRaw) (int, error) {
 	op := "repository.jobs.SaveJobs"
@@ -74,6 +77,12 @@ func (r *repository) SaveJobs(jobs []model.JobRaw) (int, error) {
 		// Получаем тег канала и ID сообщения
 		tagParts := strings.Split(parts[len(parts)-2], "@")
 		tag := tagParts[len(tagParts)-1]
+
+		// Валидация тега канала
+		if !channelTagRegexp.MatchString(tag) {
+			r.logger.Warn("Некорректный тег канала (валидация)", zap.String("tag", tag))
+			continue
+		}
 
 		// Пропускаем, если канал не найден в БД
 		if _, exists := channels[tag]; !exists {

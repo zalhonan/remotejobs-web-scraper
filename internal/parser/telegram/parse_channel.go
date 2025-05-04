@@ -94,6 +94,12 @@ func (p *telegramParser) parseChannel(tag string) (jobs []model.JobRaw, err erro
 		return nil, fmt.Errorf("%s: %w", op, error)
 	}
 
+	p.logger.Info(
+		"Messages parsed",
+		zap.String("URL", channel),
+		zap.Int("Processed", counter),
+	)
+
 	return jobs, nil
 
 }
