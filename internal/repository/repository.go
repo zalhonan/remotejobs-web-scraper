@@ -8,4 +8,5 @@ type JobsRepository interface {
 	GetTelegramChannels() ([]model.TelegramChannel, error)
 	SaveJobs(jobs []model.JobRaw) (int, error)
 	SaveChannels(jobsList string) (int, error)
+	SaveTechnologies(technologiesFile string) (int, error)
 }

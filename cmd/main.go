@@ -50,6 +50,16 @@ func main() {
 
 	logger.Info("Каналы успешно сохранены", zap.Int("count", channels))
 
+	// Загрузка технологий
+	technologiesFile := "../data/technologies.csv"
+
+	technologies, err := repository.SaveTechnologies(technologiesFile)
+	if err != nil {
+		logger.Error("Ошибка сохранения технологий", zap.Error(err))
+	}
+
+	logger.Info("Технологии успешно сохранены", zap.Int("count", technologies))
+
 	telegramParser := telegram.NewTelegramParser(repository, logger, ctx)
 
 	parsers := []parser.Parser{telegramParser}
