@@ -39,6 +39,7 @@ func main() {
 
 	repository := jobs.NewRepository(database, logger, ctx)
 
+	// миграция каналов телеграма
 	channelsList := "../data/telegram_channels.txt"
 
 	channels, err := repository.SaveChannels(channelsList)

@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS jobs_raw (
     date_parsed TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_jobs_raw_main_technology ON jobs_raw(main_technology);
+CREATE INDEX IF NOT EXISTS idx_jobs_raw_main_technology ON jobs_raw(main_technology);
 
 CREATE TABLE IF NOT EXISTS telegram_channels (
     id BIGSERIAL PRIMARY KEY,
@@ -20,11 +20,22 @@ CREATE TABLE IF NOT EXISTS telegram_channels (
     date_last_parsed TIMESTAMP WITH TIME ZONE
 );
 
-CREATE INDEX idx_telegram_channels_tag ON telegram_channels(tag);
+CREATE INDEX IF NOT EXISTS idx_telegram_channels_tag ON telegram_channels(tag);
+
+CREATE TABLE IF NOT EXISTS technologies (
+    id BIGSERIAL PRIMARY KEY,
+    technology VARCHAR(100) NOT NULL UNIQUE,
+    keywords TEXT[] NOT NULL,
+    sort_order INTEGER NOT NULL DEFAULT 0 CHECK (sort_order BETWEEN -100 AND 100)
+);
+
+CREATE INDEX IF NOT EXISTS idx_technologies_technology ON technologies(technology);
+CREATE INDEX IF NOT EXISTS idx_technologies_keywords ON technologies USING GIN (keywords);
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
+DROP TABLE IF EXISTS technologies;
 DROP TABLE IF EXISTS telegram_channels;
 DROP TABLE IF EXISTS jobs_raw;
 -- +goose StatementEnd

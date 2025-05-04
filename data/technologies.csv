@@ -1,0 +1,27 @@
+technology,sort_order,keyword1,keyword2,keyword3,keyword4,keyword5
+golang,0,golang,go,,,
+javascript,2,javascript,js,,,
+java,1,java,джава,,,
+typescript,4,typescript,ts,,,
+python,4,python,питон,,,
+php,5,php,php,,,
+devops,6,devops,девопс,,,
+design,7,design,дизайн,,,
+analytics,8,аналитик,аналитика,,,
+qa,9,тестирование,quality assurance,тестирование,тест,тестировщик,
+bitrix,10,bitrix,битрикс,,,
+flutter,14,flutter,флаттер,,,
+kotlin,11,kotlin,котлин,,,
+android,12,android,андроид,,,
+ios,13,ios,айос,,,
+
+
+
+
+
+
+
+
+
+
+
