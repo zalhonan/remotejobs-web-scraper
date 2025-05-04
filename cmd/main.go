@@ -13,12 +13,7 @@ import (
 )
 
 func main() {
-	logger, err := logger.NewLogger(
-		"teSkgtiFsEmGLHeQxVYXfLbe",
-		"s1271819.eu-nbg-2.betterstackdata.com",
-		50,
-		10,
-	)
+	logger, err := logger.InitLogger()
 	if err != nil {
 		panic("Cannot init logger: " + err.Error())
 	}
