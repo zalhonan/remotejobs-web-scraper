@@ -39,26 +39,10 @@ func main() {
 
 	repository := jobs.NewRepository(database, logger, ctx)
 
-	// миграция каналов телеграмма
-	channelsList := "../data/telegram_channels.txt"
-
-	channels, err := repository.SaveChannels(channelsList)
-
-	if err != nil {
-		logger.Error("Ошибка сохранения каналов", zap.Error(err))
+	// Загрузка необходимых данных в базу данных
+	if err := db.PopulateDatabase(ctx, repository, logger); err != nil {
+		logger.Error("Ошибка при загрузке данных в базу", zap.Error(err))
 	}
-
-	logger.Info("Каналы успешно сохранены", zap.Int("count", channels))
-
-	// Загрузка технологий
-	technologiesFile := "../data/technologies.csv"
-
-	technologies, err := repository.SaveTechnologies(technologiesFile)
-	if err != nil {
-		logger.Error("Ошибка сохранения технологий", zap.Error(err))
-	}
-
-	logger.Info("Технологии успешно сохранены", zap.Int("count", technologies))
 
 	telegramParser := telegram.NewTelegramParser(repository, logger, ctx)
 
