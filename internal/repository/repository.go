@@ -9,4 +9,5 @@ type JobsRepository interface {
 	SaveJobs(jobs []model.JobRaw) (int, error)
 	SaveChannels(jobsList string) (int, error)
 	SaveTechnologies(technologiesFile string) (int, error)
+	GetTechnologies() ([]model.Technology, error)
 }

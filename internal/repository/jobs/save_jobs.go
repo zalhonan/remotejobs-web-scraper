@@ -14,11 +14,35 @@ import (
 
 var channelTagRegexp = regexp.MustCompile(`^[a-zA-Z0-9_]+$`)
 
+// detectMainTechnology определяет основную технологию вакансии на основе ключевых слов
+func (r *repository) detectMainTechnology(content string, technologies []model.Technology) string {
+	// Преобразуем контент в нижний регистр для регистронезависимого поиска
+	contentLower := strings.ToLower(content)
+
+	// Для каждой технологии проверяем наличие ключевых слов
+	for _, tech := range technologies {
+		for _, keyword := range tech.Keywords {
+			if strings.Contains(contentLower, strings.ToLower(keyword)) {
+				return tech.Technology
+			}
+		}
+	}
+
+	return ""
+}
+
 func (r *repository) SaveJobs(jobs []model.JobRaw) (int, error) {
 	op := "repository.jobs.SaveJobs"
 
 	if len(jobs) == 0 {
 		return 0, nil
+	}
+
+	// Получаем список технологий, отсортированный по приоритету
+	technologies, err := r.GetTechnologies()
+	if err != nil {
+		r.logger.Warn("Не удалось получить список технологий, вакансии будут сохранены без определения технологии",
+			zap.Error(err))
 	}
 
 	// Создаем билдер запросов с соответствующим форматом плейсхолдеров
@@ -90,6 +114,11 @@ func (r *repository) SaveJobs(jobs []model.JobRaw) (int, error) {
 			continue
 		}
 
+		// Определяем основную технологию вакансии
+		if len(technologies) > 0 {
+			job.MainTechnology = r.detectMainTechnology(job.Content, technologies)
+		}
+
 		jobsByChannel[tag] = append(jobsByChannel[tag], job)
 	}
 
@@ -134,8 +163,8 @@ func (r *repository) SaveJobs(jobs []model.JobRaw) (int, error) {
 			// Формируем INSERT запрос для вакансии
 			insertQuery, insertArgs, err := psql.
 				Insert("jobs_raw").
-				Columns("content", "source_link", "date_posted", "date_parsed").
-				Values(job.Content, job.SourceLink, job.DatePosted, job.DateParsed).
+				Columns("content", "source_link", "main_technology", "date_posted", "date_parsed").
+				Values(job.Content, job.SourceLink, job.MainTechnology, job.DatePosted, job.DateParsed).
 				ToSql()
 
 			if err != nil {
