@@ -2,12 +2,74 @@ package telegram
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/gocolly/colly"
 	"github.com/zalhonan/remotejobs-web-scraper/model"
 	"go.uber.org/zap"
 )
+
+// sanitizeUTF8 удаляет или заменяет некорректные UTF-8 символы в строке
+func sanitizeUTF8(s string) string {
+	if utf8.ValidString(s) {
+		return s
+	}
+
+	// Заменяем некорректные символы на пробелы
+	result := make([]rune, 0, len(s))
+	for i := 0; i < len(s); {
+		r, size := utf8.DecodeRuneInString(s[i:])
+		if r == utf8.RuneError && size == 1 {
+			// Некорректный символ - заменяем на пробел
+			result = append(result, ' ')
+			i++
+		} else {
+			result = append(result, r)
+			i += size
+		}
+	}
+	return string(result)
+}
+
+// stripHTMLTags удаляет все HTML теги из строки
+func stripHTMLTags(html string) string {
+	// Удаляем все HTML теги
+	re := regexp.MustCompile("<[^>]*>")
+	text := re.ReplaceAllString(html, "")
+
+	// Заменяем множественные пробелы на один
+	re = regexp.MustCompile(`\s+`)
+	text = re.ReplaceAllString(text, " ")
+
+	// Заменяем HTML-специальные символы на обычные
+	text = strings.ReplaceAll(text, "&amp;", "&")
+	text = strings.ReplaceAll(text, "&lt;", "<")
+	text = strings.ReplaceAll(text, "&gt;", ">")
+	text = strings.ReplaceAll(text, "&quot;", "\"")
+	text = strings.ReplaceAll(text, "&#39;", "'")
+	text = strings.ReplaceAll(text, "&nbsp;", " ")
+
+	return strings.TrimSpace(text)
+}
+
+// extractFirstTagContent извлекает текст из первого HTML тега в строке
+func extractFirstTagContent(html string) string {
+	// Регулярное выражение для поиска первого HTML-тега с содержимым
+	re := regexp.MustCompile(`<[^>]+>(.*?)</[^>]+>`)
+	matches := re.FindStringSubmatch(html)
+
+	if len(matches) >= 2 {
+		// Очищаем содержимое от возможных вложенных тегов
+		content := matches[1]
+		return stripHTMLTags(content)
+	}
+
+	// Если тег не найден, возвращаем пустую строку
+	return ""
+}
 
 func (p *telegramParser) parseChannel(tag string) (jobs []model.JobRaw, err error) {
 	op := "internal.parser.telegram.parseChannel"
@@ -45,6 +107,24 @@ func (p *telegramParser) parseChannel(tag string) (jobs []model.JobRaw, err erro
 
 		messageTextDiv := e.DOM.Find("div.tgme_widget_message_text.js-message_text")
 		htmlContent, _ := messageTextDiv.Html()
+		htmlContent = sanitizeUTF8(htmlContent)
+
+		// Получаем чистый текст без HTML-тегов используя нашу функцию
+		contentPure := stripHTMLTags(htmlContent)
+		contentPure = sanitizeUTF8(contentPure)
+
+		// Извлекаем текст из первого HTML-тега для заголовка
+		title := extractFirstTagContent(htmlContent)
+
+		// Если в первом теге нет текста или текст слишком короткий, используем запасной вариант
+		if title == "" || len(title) < 5 {
+			// Используем первые 100 символов контента или весь текст, если он короче
+			if len(contentPure) > 100 {
+				title = strings.TrimSpace(contentPure[:100]) + "..."
+			} else {
+				title = contentPure
+			}
+		}
 
 		// Получаем информацию из блока под сообщением
 		infoBlock := e.DOM.Find("div.tgme_widget_message_info.short.js-message_info")
@@ -72,10 +152,12 @@ func (p *telegramParser) parseChannel(tag string) (jobs []model.JobRaw, err erro
 		}
 
 		jobs = append(jobs, model.JobRaw{
-			Content:    htmlContent,
-			SourceLink: messageLink,
-			DatePosted: parsedTime,
-			DateParsed: time.Now(),
+			Content:     htmlContent,
+			Title:       title,
+			ContentPure: contentPure,
+			SourceLink:  messageLink,
+			DatePosted:  parsedTime,
+			DateParsed:  time.Now(),
 		})
 	})
 

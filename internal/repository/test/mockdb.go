@@ -127,9 +127,12 @@ func (p *MockParser) Name() string {
 
 // CreateMockJob создает тестовую вакансию
 func CreateMockJob(id int64, technology string) model.JobRaw {
+	content := fmt.Sprintf("Тестовая вакансия %d по технологии %s. Это описание вакансии.", id, technology)
 	return model.JobRaw{
 		ID:             id,
-		Content:        fmt.Sprintf("Тестовая вакансия %d по технологии %s", id, technology),
+		Content:        fmt.Sprintf("<p>%s</p>", content),
+		Title:          fmt.Sprintf("Тестовая вакансия %d по технологии %s.", id, technology),
+		ContentPure:    content,
 		SourceLink:     fmt.Sprintf("https://t.me/test_channel/%d", id),
 		MainTechnology: technology,
 		DatePosted:     time.Now().Add(-24 * time.Hour),

@@ -3,6 +3,8 @@
 CREATE TABLE IF NOT EXISTS jobs_raw (
     id BIGSERIAL PRIMARY KEY,
     content TEXT NOT NULL,
+    title TEXT,
+    content_pure TEXT,
     source_link VARCHAR(2048) NOT NULL,
     main_technology VARCHAR(255),
     date_posted TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
