@@ -8,6 +8,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/gocolly/colly"
+	"github.com/zalhonan/remotejobs-web-scraper/internal/utils"
 	"github.com/zalhonan/remotejobs-web-scraper/model"
 	"go.uber.org/zap"
 )
@@ -34,8 +35,8 @@ func sanitizeUTF8(s string) string {
 	return string(result)
 }
 
-// stripHTMLTags удаляет все HTML теги из строки
-func stripHTMLTags(html string) string {
+// cleanContent удаляет все HTML теги из строки
+func cleanContent(html string) string {
 	// Удаляем все HTML теги
 	re := regexp.MustCompile("<[^>]*>")
 	text := re.ReplaceAllString(html, "")
@@ -64,7 +65,7 @@ func extractFirstTagContent(html string) string {
 	if len(matches) >= 2 {
 		// Очищаем содержимое от возможных вложенных тегов
 		content := matches[1]
-		return stripHTMLTags(content)
+		return cleanContent(content)
 	}
 
 	// Если тег не найден, возвращаем пустую строку
@@ -110,14 +111,17 @@ func (p *telegramParser) parseChannel(tag string) (jobs []model.JobRaw, err erro
 		htmlContent = sanitizeUTF8(htmlContent)
 
 		// Получаем чистый текст без HTML-тегов используя нашу функцию
-		contentPure := stripHTMLTags(htmlContent)
+		contentPure := cleanContent(htmlContent)
 		contentPure = sanitizeUTF8(contentPure)
 
 		// Извлекаем текст из первого HTML-тега для заголовка
-		title := extractFirstTagContent(htmlContent)
+		title := utils.EnsureValidUTF8(extractFirstTagContent(htmlContent))
 
-		// Если в первом теге нет текста или текст слишком короткий, используем запасной вариант
-		if title == "" || len(title) < 5 {
+		// Если первый тег слишком длинный, то скорее всего это реклама и мы её пропускаем
+		if len(title) > 70 {
+			title = "Вакансия"
+		} else if title == "" || len(title) < 5 {
+			// Если в первом теге нет текста или текст слишком короткий, используем запасной вариант
 			// Используем первые 100 символов контента или весь текст, если он короче
 			if len(contentPure) > 100 {
 				title = strings.TrimSpace(contentPure[:100]) + "..."

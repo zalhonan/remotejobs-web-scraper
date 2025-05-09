@@ -6,36 +6,14 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"unicode/utf8"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/zalhonan/remotejobs-web-scraper/internal/utils"
 	"github.com/zalhonan/remotejobs-web-scraper/model"
 	"go.uber.org/zap"
 )
 
 var channelTagRegexp = regexp.MustCompile(`^[a-zA-Z0-9_]+$`)
-
-// ensureValidUTF8 проверяет и очищает строку, чтобы она содержала только валидные UTF-8 символы
-func ensureValidUTF8(s string) string {
-	if utf8.ValidString(s) {
-		return s
-	}
-
-	// Заменяем некорректные символы на пробелы
-	result := make([]rune, 0, len(s))
-	for i := 0; i < len(s); {
-		r, size := utf8.DecodeRuneInString(s[i:])
-		if r == utf8.RuneError && size == 1 {
-			// Некорректный символ - заменяем на пробел
-			result = append(result, ' ')
-			i++
-		} else {
-			result = append(result, r)
-			i += size
-		}
-	}
-	return string(result)
-}
 
 // detectMainTechnology определяет основную технологию вакансии на основе ключевых слов
 func (r *repository) detectMainTechnology(content string, technologies []model.Technology) string {
@@ -184,11 +162,11 @@ func (r *repository) SaveJobs(jobs []model.JobRaw) (int, error) {
 			}
 
 			// Очистка данных от некорректных UTF-8 символов
-			job.Content = ensureValidUTF8(job.Content)
-			job.Title = ensureValidUTF8(job.Title)
-			job.ContentPure = ensureValidUTF8(job.ContentPure)
-			job.SourceLink = ensureValidUTF8(job.SourceLink)
-			job.MainTechnology = ensureValidUTF8(job.MainTechnology)
+			job.Content = utils.EnsureValidUTF8(job.Content)
+			job.Title = utils.EnsureValidUTF8(job.Title)
+			job.ContentPure = utils.EnsureValidUTF8(job.ContentPure)
+			job.SourceLink = utils.EnsureValidUTF8(job.SourceLink)
+			job.MainTechnology = utils.EnsureValidUTF8(job.MainTechnology)
 
 			// Формируем INSERT запрос для вакансии
 			insertQuery, insertArgs, err := psql.
