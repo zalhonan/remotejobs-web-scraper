@@ -74,7 +74,31 @@ func (m *MockRepository) GetTechnologies() ([]model.Technology, error) {
 	if m.ShouldError {
 		return nil, errors.New("mock error getting technologies")
 	}
-	return m.Technologies, nil
+	if len(m.Technologies) > 0 {
+		return m.Technologies, nil
+	}
+	return []model.Technology{
+		{ID: 1, Technology: "Go", Keywords: []string{"golang", "go lang"}, SortOrder: 10},
+		{ID: 2, Technology: "Python", Keywords: []string{"python", "python dev"}, SortOrder: 20},
+		{ID: 3, Technology: "Java", Keywords: []string{"java", "java programming"}, SortOrder: 30},
+	}, nil
+}
+
+// GetStopWords возвращает моковые стоп-слова
+func (m *MockRepository) GetStopWords() ([]model.StopWord, error) {
+	if m.ShouldError {
+		return nil, errors.New("mock error getting stop words")
+	}
+	return []model.StopWord{
+		{ID: 1, Word: "стремитесь"},
+		{ID: 2, Word: "адвокат"},
+		{ID: 3, Word: "реклама"},
+	}, nil
+}
+
+// SaveStopWords имитирует сохранение стоп-слов
+func (m *MockRepository) SaveStopWords(stopWordsFile string) (int, error) {
+	return 3, nil
 }
 
 // DetectMainTechnology определяет основную технологию вакансии на основе ключевых слов

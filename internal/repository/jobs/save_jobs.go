@@ -16,9 +16,17 @@ import (
 var channelTagRegexp = regexp.MustCompile(`^[a-zA-Z0-9_]+$`)
 
 // detectMainTechnology определяет основную технологию вакансии на основе ключевых слов
-func (r *repository) detectMainTechnology(content string, technologies []model.Technology) string {
+// Если в тексте встречается хотя бы одно стоп-слово, функция возвращает пустую строку
+func (r *repository) detectMainTechnology(content string, technologies []model.Technology, stopWords []model.StopWord) string {
 	// Преобразуем контент в нижний регистр для регистронезависимого поиска
 	contentLower := strings.ToLower(content)
+
+	// Проверяем наличие стоп-слов
+	for _, stopWord := range stopWords {
+		if strings.Contains(contentLower, strings.ToLower(stopWord.Word)) {
+			return "" // Если найдено хотя бы одно стоп-слово, возвращаем пустую строку
+		}
+	}
 
 	// Для каждой технологии проверяем наличие ключевых слов
 	for _, tech := range technologies {
@@ -43,6 +51,13 @@ func (r *repository) SaveJobs(jobs []model.JobRaw) (int, error) {
 	technologies, err := r.GetTechnologies()
 	if err != nil {
 		r.logger.Warn("Не удалось получить список технологий, вакансии будут сохранены без определения технологии",
+			zap.Error(err))
+	}
+
+	// Получаем список стоп-слов
+	stopWords, err := r.GetStopWords()
+	if err != nil {
+		r.logger.Warn("Не удалось получить список стоп-слов, проверка на стоп-слова не будет выполнена",
 			zap.Error(err))
 	}
 
@@ -117,7 +132,7 @@ func (r *repository) SaveJobs(jobs []model.JobRaw) (int, error) {
 
 		// Определяем основную технологию вакансии
 		if len(technologies) > 0 {
-			job.MainTechnology = r.detectMainTechnology(job.Content, technologies)
+			job.MainTechnology = r.detectMainTechnology(job.Content, technologies, stopWords)
 		}
 
 		jobsByChannel[tag] = append(jobsByChannel[tag], job)

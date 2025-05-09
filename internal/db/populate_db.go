@@ -21,6 +21,12 @@ func PopulateDatabase(ctx context.Context, repo repository.JobsRepository, logge
 		return err
 	}
 
+	// Импорт стоп-слов
+	stopWordsPath := "../data/stop_words.txt"
+	if err := populateStopWords(ctx, repo, stopWordsPath, logger); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -49,5 +55,19 @@ func populateTechnologies(ctx context.Context, repo repository.JobsRepository, f
 	}
 
 	logger.Info("Технологии успешно сохранены", zap.Int("count", technologies))
+	return nil
+}
+
+// populateStopWords импортирует стоп-слова из файла в базу данных
+func populateStopWords(ctx context.Context, repo repository.JobsRepository, filePath string, logger *zap.Logger) error {
+	logger.Info("Начинаем импорт стоп-слов из файла", zap.String("filePath", filePath))
+
+	stopWords, err := repo.SaveStopWords(filePath)
+	if err != nil {
+		logger.Error("Ошибка сохранения стоп-слов", zap.Error(err))
+		return err
+	}
+
+	logger.Info("Стоп-слова успешно сохранены", zap.Int("count", stopWords))
 	return nil
 }
