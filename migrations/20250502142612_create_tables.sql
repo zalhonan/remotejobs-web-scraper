@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS jobs_raw (
     content_pure TEXT,
     source_link VARCHAR(2048) NOT NULL,
     main_technology VARCHAR(255),
+    stop_words TEXT[],
     date_posted TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     date_parsed TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );

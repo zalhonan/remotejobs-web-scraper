@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/lib/pq"
 	"github.com/zalhonan/remotejobs-web-scraper/internal/utils"
 	"github.com/zalhonan/remotejobs-web-scraper/model"
 	"go.uber.org/zap"
@@ -135,6 +136,16 @@ func (r *repository) SaveJobs(jobs []model.JobRaw) (int, error) {
 			job.MainTechnology = r.detectMainTechnology(job.Content, technologies, stopWords)
 		}
 
+		// Определяем стоп-слова, которые встречаются в вакансии
+		var foundStopWords []string
+		contentLower := strings.ToLower(job.Content)
+		for _, stopWord := range stopWords {
+			if strings.Contains(contentLower, strings.ToLower(stopWord.Word)) {
+				foundStopWords = append(foundStopWords, stopWord.Word)
+			}
+		}
+		job.StopWords = foundStopWords
+
 		jobsByChannel[tag] = append(jobsByChannel[tag], job)
 	}
 
@@ -186,8 +197,8 @@ func (r *repository) SaveJobs(jobs []model.JobRaw) (int, error) {
 			// Формируем INSERT запрос для вакансии
 			insertQuery, insertArgs, err := psql.
 				Insert("jobs_raw").
-				Columns("content", "title", "content_pure", "source_link", "main_technology", "date_posted", "date_parsed").
-				Values(job.Content, job.Title, job.ContentPure, job.SourceLink, job.MainTechnology, job.DatePosted, job.DateParsed).
+				Columns("content", "title", "content_pure", "source_link", "main_technology", "stop_words", "date_posted", "date_parsed").
+				Values(job.Content, job.Title, job.ContentPure, job.SourceLink, job.MainTechnology, squirrel.Expr("?::text[]", pq.Array(job.StopWords)), job.DatePosted, job.DateParsed).
 				ToSql()
 
 			if err != nil {
