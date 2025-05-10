@@ -1,5 +1,6 @@
 technology,sort_order,keyword1,keyword2,keyword3,keyword4,keyword5
 golang,0,golang,go,,,
+dba,1,dba,tarantool,database administrator,,
 javascript,2,javascript,js,node.js,,
 java,1,java,джава,,,
 typescript,4,typescript,ts,,,
@@ -17,3 +18,4 @@ ios,13,ios,айос,,,
 architect,15,architect,архитектор,архитектура,solution architect,solution
 sql,16,sql,,,,
 c++,17,c++,,,,
+rust,18,rust,,,,
