@@ -194,27 +194,58 @@ func (r *repository) SaveJobs(jobs []model.JobRaw) (int, error) {
 			job.SourceLink = utils.EnsureValidUTF8(job.SourceLink)
 			job.MainTechnology = utils.EnsureValidUTF8(job.MainTechnology)
 
-			// Формируем INSERT запрос для вакансии
-			insertQuery, insertArgs, err := psql.
+			// Получаем ID для слага из INSERT
+			var jobID int64
+			insertBuilder := psql.
 				Insert("jobs_raw").
-				Columns("content", "title", "content_pure", "source_link", "main_technology", "stop_words", "date_posted", "date_parsed").
-				Values(job.Content, job.Title, job.ContentPure, job.SourceLink, job.MainTechnology, squirrel.Expr("?::text[]", pq.Array(job.StopWords)), job.DatePosted, job.DateParsed).
-				ToSql()
+				Columns("content", "title", "content_pure", "source_link", "main_technology", "slug", "stop_words", "date_posted", "date_parsed")
 
+			// Сначала пытаемся получить ID для слага
+			newRow := insertBuilder.
+				Values(job.Content, job.Title, job.ContentPure, job.SourceLink, job.MainTechnology, "", squirrel.Expr("?::text[]", pq.Array(job.StopWords)), job.DatePosted, job.DateParsed).
+				Suffix("RETURNING id")
+
+			idQuery, idArgs, err := newRow.ToSql()
 			if err != nil {
-				r.logger.Warn("Ошибка формирования запроса вставки вакансии",
+				r.logger.Warn("Ошибка формирования запроса для получения ID вакансии",
 					zap.String("link", job.SourceLink),
 					zap.Error(err))
 				continue
 			}
 
-			// Выполняем INSERT запрос
-			_, err = tx.Exec(r.context, insertQuery, insertArgs...)
+			// Выполняем запрос и получаем ID
+			err = tx.QueryRow(r.context, idQuery, idArgs...).Scan(&jobID)
 			if err != nil {
-				r.logger.Warn("Ошибка выполнения запроса вставки вакансии",
+				r.logger.Warn("Ошибка выполнения запроса для получения ID вакансии",
 					zap.String("link", job.SourceLink),
 					zap.Error(err))
 				continue
+			}
+
+			// Генерируем слаг из ID и заголовка
+			job.Slug = utils.GenerateSlug(jobID, job.Title)
+
+			// Обновляем запись с полученным слагом
+			updateQuery, updateArgs, err := psql.
+				Update("jobs_raw").
+				Set("slug", job.Slug).
+				Where(squirrel.Eq{"id": jobID}).
+				ToSql()
+
+			if err != nil {
+				r.logger.Warn("Ошибка формирования запроса обновления слага вакансии",
+					zap.String("link", job.SourceLink),
+					zap.Error(err))
+				continue
+			}
+
+			// Выполняем UPDATE запрос
+			_, err = tx.Exec(r.context, updateQuery, updateArgs...)
+			if err != nil {
+				r.logger.Warn("Ошибка выполнения запроса обновления слага вакансии",
+					zap.String("link", job.SourceLink),
+					zap.Error(err))
+				// Не прерываем выполнение, так как ID уже получен и вакансия добавлена
 			}
 
 			newJobsCount++
