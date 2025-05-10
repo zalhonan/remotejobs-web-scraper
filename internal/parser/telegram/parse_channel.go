@@ -35,15 +35,19 @@ func sanitizeUTF8(s string) string {
 	return string(result)
 }
 
-// cleanContent удаляет все HTML теги из строки
+// cleanContent удаляет все HTML теги из строки, сохраняя абзацы и переводы строк
 func cleanContent(html string) string {
-	// Удаляем все HTML теги
-	re := regexp.MustCompile("<[^>]*>")
-	text := re.ReplaceAllString(html, "")
+	// Заменяем теги <br>, <p>, <div>, <h1>-<h6>, <li> на перевод строки
+	re := regexp.MustCompile(`<br\s*/?>|</p>|</div>|</h[1-6]>|</li>`)
+	html = re.ReplaceAllString(html, "\n")
 
-	// Заменяем множественные пробелы на один
-	re = regexp.MustCompile(`\s+`)
-	text = re.ReplaceAllString(text, " ")
+	// Заменяем открывающие теги параграфов, заголовков и div на перевод строки
+	re = regexp.MustCompile(`<p[^>]*>|<div[^>]*>|<h[1-6][^>]*>|<li[^>]*>`)
+	html = re.ReplaceAllString(html, "\n")
+
+	// Удаляем все оставшиеся HTML теги
+	re = regexp.MustCompile("<[^>]*>")
+	text := re.ReplaceAllString(html, "")
 
 	// Заменяем HTML-специальные символы на обычные
 	text = strings.ReplaceAll(text, "&amp;", "&")
@@ -52,6 +56,21 @@ func cleanContent(html string) string {
 	text = strings.ReplaceAll(text, "&quot;", "\"")
 	text = strings.ReplaceAll(text, "&#39;", "'")
 	text = strings.ReplaceAll(text, "&nbsp;", " ")
+
+	// Нормализуем пробелы в каждой строке (но не удаляем переводы строк)
+	lines := strings.Split(text, "\n")
+	for i, line := range lines {
+		// Заменяем множественные пробелы на один
+		re = regexp.MustCompile(`\s+`)
+		lines[i] = strings.TrimSpace(re.ReplaceAllString(line, " "))
+	}
+
+	// Соединяем строки обратно с переводами строк
+	text = strings.Join(lines, "\n")
+
+	// Нормализуем переводы строк - не более двух подряд (одна пустая строка между параграфами)
+	re = regexp.MustCompile(`\n{3,}`)
+	text = re.ReplaceAllString(text, "\n\n")
 
 	return strings.TrimSpace(text)
 }
