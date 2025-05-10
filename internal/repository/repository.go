@@ -12,4 +12,5 @@ type JobsRepository interface {
 	SaveStopWords(stopWordsFile string) (int, error)
 	GetTechnologies() ([]model.Technology, error)
 	GetStopWords() ([]model.StopWord, error)
+	UpdateTechnologiesCount() error
 }

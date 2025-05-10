@@ -101,6 +101,14 @@ func (m *MockRepository) SaveStopWords(stopWordsFile string) (int, error) {
 	return 3, nil
 }
 
+// UpdateTechnologiesCount имитирует обновление счетчика вакансий для каждой технологии
+func (m *MockRepository) UpdateTechnologiesCount() error {
+	if m.ShouldError {
+		return errors.New("mock error updating technologies count")
+	}
+	return nil
+}
+
 // DetectMainTechnology определяет основную технологию вакансии на основе ключевых слов
 func (m *MockRepository) DetectMainTechnology(content string, technologies []model.Technology) string {
 	// Преобразуем контент в нижний регистр для регистронезависимого поиска

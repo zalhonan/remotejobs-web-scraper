@@ -52,4 +52,10 @@ func main() {
 	}
 
 	logger.Info("Вакансии успешно собраны")
+
+	if err := repository.UpdateTechnologiesCount(); err != nil {
+		logger.Error("Ошибка обновления count в technologies", zap.Error(err))
+	} else {
+		logger.Info("Таблица technologies обновлена: count пересчитан")
+	}
 }

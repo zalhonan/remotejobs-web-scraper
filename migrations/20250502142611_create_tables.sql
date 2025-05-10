@@ -28,7 +28,8 @@ CREATE TABLE IF NOT EXISTS technologies (
     id BIGSERIAL PRIMARY KEY,
     technology VARCHAR(100) NOT NULL UNIQUE,
     keywords TEXT[] NOT NULL,
-    sort_order INTEGER NOT NULL DEFAULT 0 CHECK (sort_order BETWEEN -100 AND 100)
+    sort_order INTEGER NOT NULL DEFAULT 0 CHECK (sort_order BETWEEN -100 AND 100),
+    count BIGINT NOT NULL DEFAULT 0
 );
 
 CREATE INDEX IF NOT EXISTS idx_technologies_technology ON technologies(technology);
