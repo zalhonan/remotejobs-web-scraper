@@ -8,6 +8,7 @@ import (
 
 var nonAlphanumericRegex = regexp.MustCompile(`[^a-zA-Z0-9\s-]`)
 var multipleSpacesRegex = regexp.MustCompile(`\s+`)
+var genericSlugRegex = regexp.MustCompile(`^\d+-(?:vakansiya|vacancy)$`)
 
 // Таблица транслитерации кириллических символов
 var translitMap = map[rune]string{
@@ -39,11 +40,16 @@ func transliterate(input string) string {
 	return result.String()
 }
 
-// GenerateSlug создает слаг в формате <id>-<title>
+// GenerateSlug создает слаг в формате <id>-<title> или <id>-<main_technology>, если title пустой
 // Преобразует заголовок в нижний регистр, удаляет специальные символы и заменяет пробелы на дефисы
-func GenerateSlug(id int64, title string) string {
-	// Если заголовок пустой, просто возвращаем ID
+func GenerateSlug(id int64, title string, mainTechnology string) string {
+	// Если заголовок пустой, но есть основная технология, используем её
 	if title == "" {
+		if mainTechnology != "" {
+			// Формируем слаг из ID и основной технологии
+			return fmt.Sprintf("%d-%s", id, strings.ToLower(mainTechnology))
+		}
+		// Если и заголовок, и основная технология пусты, используем только ID
 		return fmt.Sprintf("%d", id)
 	}
 
@@ -73,5 +79,13 @@ func GenerateSlug(id int64, title string) string {
 	}
 
 	// Формируем финальный слаг в формате <id>-<slug>
-	return fmt.Sprintf("%d-%s", id, slug)
+	result := fmt.Sprintf("%d-%s", id, slug)
+
+	// Проверяем, если слаг имеет формат <id>-vakansiya или <id>-vacancy
+	// и есть основная технология, добавляем её
+	if genericSlugRegex.MatchString(result) && mainTechnology != "" {
+		result = fmt.Sprintf("%s-%s", result, strings.ToLower(mainTechnology))
+	}
+
+	return result
 }

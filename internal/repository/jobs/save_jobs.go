@@ -222,8 +222,8 @@ func (r *repository) SaveJobs(jobs []model.JobRaw) (int, error) {
 				continue
 			}
 
-			// Генерируем слаг из ID и заголовка
-			job.Slug = utils.GenerateSlug(jobID, job.Title)
+			// Генерируем слаг из ID, заголовка и основной технологии
+			job.Slug = utils.GenerateSlug(jobID, job.Title, job.MainTechnology)
 
 			// Обновляем запись с полученным слагом
 			updateQuery, updateArgs, err := psql.
